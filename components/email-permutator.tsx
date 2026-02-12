@@ -15,8 +15,9 @@ import {
 import { User, FileSpreadsheet, Mail } from "lucide-react"
 
 export function EmailPermutator() {
-  const [results, setResults] = useState<PermutationResult[]>([])
-  const [parseStats, setParseStats] = useState<Omit<ParseResult, 'contacts'> | null>(null)
+  const [singleResults, setSingleResults] = useState<PermutationResult[]>([])
+  const [bulkResults, setBulkResults] = useState<PermutationResult[]>([])
+  const [bulkParseStats, setBulkParseStats] = useState<Omit<ParseResult, 'contacts'> | null>(null)
 
   const handleSingleGenerate = (
     firstName: string,
@@ -26,13 +27,12 @@ export function EmailPermutator() {
   ) => {
     const cleanedDomain = cleanDomain(domain)
     const emails = generateEmailPermutations(firstName, middleName, lastName, cleanedDomain)
-    setResults([{ firstName, middleName, lastName, domain: cleanedDomain, emails }])
-    setParseStats(null)
+    setSingleResults([{ firstName, middleName, lastName, domain: cleanedDomain, emails }])
   }
 
   const handleBulkUpload = (csvContent: string) => {
     const { contacts, ...stats } = parseCSV(csvContent)
-    setParseStats(stats)
+    setBulkParseStats(stats)
     const newResults: PermutationResult[] = contacts.map((contact) => ({
       ...contact,
       emails: generateEmailPermutations(
@@ -42,7 +42,7 @@ export function EmailPermutator() {
         contact.domain
       ),
     }))
-    setResults(newResults)
+    setBulkResults(newResults)
   }
 
   return (
@@ -64,7 +64,7 @@ export function EmailPermutator() {
             Bulk Upload
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="single" className="mt-6">
+        <TabsContent value="single" className="mt-6 space-y-6">
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="h-5 w-5 text-accent" />
@@ -78,8 +78,9 @@ export function EmailPermutator() {
             </p>
             <SingleEntryForm onGenerate={handleSingleGenerate} />
           </div>
+          <ResultsTable results={singleResults} />
         </TabsContent>
-        <TabsContent value="bulk" className="mt-6">
+        <TabsContent value="bulk" className="mt-6 space-y-6">
           <div className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-center gap-2 mb-4">
               <FileSpreadsheet className="h-5 w-5 text-accent" />
@@ -93,10 +94,9 @@ export function EmailPermutator() {
             </p>
             <BulkUploadForm onUpload={handleBulkUpload} />
           </div>
+          <ResultsTable results={bulkResults} parseStats={bulkParseStats} />
         </TabsContent>
       </Tabs>
-
-      <ResultsTable results={results} parseStats={parseStats} />
     </div>
   )
 }

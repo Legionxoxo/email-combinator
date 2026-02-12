@@ -135,9 +135,28 @@ export function ResultsTable({ results, parseStats }: ResultsTableProps) {
                         @{result.domain}
                       </span>
                     </div>
-                    <span className="text-muted-foreground text-sm">
-                      {result.emails.length} variations
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground text-sm">
+                        {result.emails.length} variations
+                      </span>
+                      <button
+                        onClick={() =>
+                          copyEmail(
+                            result.emails.join("\n"),
+                            `contact-${resultIndex}`
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-secondary"
+                        aria-label={`Copy all emails for ${result.firstName} ${result.lastName}`}
+                      >
+                        {copiedIndex === `contact-${resultIndex}` ? (
+                          <Check className="h-3.5 w-3.5 text-accent" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        Copy All
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div className="p-4">

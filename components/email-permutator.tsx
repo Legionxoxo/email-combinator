@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SingleEntryForm } from "@/components/single-entry-form"
 import { BulkUploadForm } from "@/components/bulk-upload-form"
@@ -18,8 +18,9 @@ export function EmailPermutator() {
   const [singleResults, setSingleResults] = useState<PermutationResult[]>([])
   const [bulkResults, setBulkResults] = useState<PermutationResult[]>([])
   const [bulkParseStats, setBulkParseStats] = useState<Omit<ParseResult, 'contacts'> | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleSingleGenerate = (
+  const handleSingleGenerate = useCallback((
     firstName: string,
     middleName: string,
     lastName: string,
@@ -28,22 +29,27 @@ export function EmailPermutator() {
     const cleanedDomain = cleanDomain(domain)
     const emails = generateEmailPermutations(firstName, middleName, lastName, cleanedDomain)
     setSingleResults([{ firstName, middleName, lastName, domain: cleanedDomain, emails }])
-  }
+  }, [])
 
-  const handleBulkUpload = (csvContent: string) => {
-    const { contacts, ...stats } = parseCSV(csvContent)
-    setBulkParseStats(stats)
-    const newResults: PermutationResult[] = contacts.map((contact) => ({
-      ...contact,
-      emails: generateEmailPermutations(
-        contact.firstName,
-        contact.middleName,
-        contact.lastName,
-        contact.domain
-      ),
-    }))
-    setBulkResults(newResults)
-  }
+  const handleBulkUpload = useCallback((csvContent: string) => {
+    setIsProcessing(true)
+    // Use setTimeout to yield to UI thread so spinner renders
+    setTimeout(() => {
+      const { contacts, ...stats } = parseCSV(csvContent)
+      setBulkParseStats(stats)
+      const newResults: PermutationResult[] = contacts.map((contact) => ({
+        ...contact,
+        emails: generateEmailPermutations(
+          contact.firstName,
+          contact.middleName,
+          contact.lastName,
+          contact.domain
+        ),
+      }))
+      setBulkResults(newResults)
+      setIsProcessing(false)
+    }, 0)
+  }, [])
 
   return (
     <div className="space-y-8">
@@ -92,7 +98,7 @@ export function EmailPermutator() {
               Upload a CSV file or paste content from Google Sheets. Rows
               without a domain will be skipped.
             </p>
-            <BulkUploadForm onUpload={handleBulkUpload} />
+            <BulkUploadForm onUpload={handleBulkUpload} isProcessing={isProcessing} />
           </div>
           <ResultsTable results={bulkResults} parseStats={bulkParseStats} />
         </TabsContent>

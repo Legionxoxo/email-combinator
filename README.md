@@ -62,7 +62,7 @@ Currently, the application is optimized for small to medium datasets (up to ~2,0
 - **Synchronous Processing**: Very large files block the main thread during the initial permutation generation.
 
 ### Future Implementation Plan (High Scale)
-We have a roadmap to support enterprise-scale lists (10k - 100k rows):
+i have a roadmap to support enterprise-scale lists (10k - 100k rows):
 
 1.  **Virtualized Rendering**: Implement `react-window` or `tanstack-virtual` to only render rows currently visible on the screen. This will allow smooth scrolling through millions of generated emails with zero lag.
 2.  **Async/Web Worker Processing**: Move the heavy permutation logic to a Web Worker or chunk the processing using `requestIdleCallback`. This ensures the UI remains responsive even while crunching 50k contacts.

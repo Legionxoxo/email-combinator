@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Copy, Download, Check, AlertTriangle, Info } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import type { PermutationResult, ParseResult } from "@/lib/email-permutator"
 import { generateOutputCSV } from "@/lib/email-permutator"
 
@@ -14,7 +14,7 @@ interface ResultsTableProps {
 export function ResultsTable({ results, parseStats }: ResultsTableProps) {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null)
 
-  const totalEmails = results.reduce((acc, r) => acc + r.emails.length, 0)
+  const totalEmails = useMemo(() => results.reduce((acc, r) => acc + r.emails.length, 0), [results])
 
   const copyEmail = async (email: string, index: string) => {
     await navigator.clipboard.writeText(email)
@@ -122,7 +122,7 @@ export function ResultsTable({ results, parseStats }: ResultsTableProps) {
           <div className="space-y-6">
             {results.map((result, resultIndex) => (
               <div
-                key={`${result.firstName}-${result.lastName}-${result.domain}`}
+                key={`contact-${resultIndex}`}
                 className="rounded-lg border border-border bg-card overflow-hidden"
               >
                 <div className="px-4 py-3 border-b border-border bg-secondary/50">
@@ -163,7 +163,7 @@ export function ResultsTable({ results, parseStats }: ResultsTableProps) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                     {result.emails.map((email, emailIndex) => (
                       <div
-                        key={email}
+                        key={`${resultIndex}-${emailIndex}`}
                         className="group flex items-center justify-between rounded-md bg-secondary px-3 py-2 text-sm hover:bg-secondary/80 transition-colors"
                       >
                         <span className="font-mono text-foreground truncate mr-2">

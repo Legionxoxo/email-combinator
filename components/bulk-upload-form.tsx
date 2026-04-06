@@ -6,22 +6,29 @@ import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Upload, FileSpreadsheet } from "lucide-react"
+import { Upload, FileSpreadsheet, Loader2, AlertTriangle } from "lucide-react"
 
 interface BulkUploadFormProps {
   onUpload: (csvContent: string) => void
+  isProcessing?: boolean
 }
 
-export function BulkUploadForm({ onUpload }: BulkUploadFormProps) {
+export function BulkUploadForm({ onUpload, isProcessing }: BulkUploadFormProps) {
   const [csvContent, setCsvContent] = useState("")
   const [isDragging, setIsDragging] = useState(false)
+  const [fileWarning, setFileWarning] = useState<string | null>(null)
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
       setIsDragging(false)
+      setFileWarning(null)
 
-      const file = e.dataTransfer.files[0]
+      const files = Array.from(e.dataTransfer.files)
+      if (files.length > 1) {
+        setFileWarning("Multiple files dropped; processing only the first CSV file.")
+      }
+      const file = files[0]
       if (file && (file.type === "text/csv" || file.name.endsWith(".csv"))) {
         const reader = new FileReader()
         reader.onload = (event) => {
@@ -37,6 +44,7 @@ export function BulkUploadForm({ onUpload }: BulkUploadFormProps) {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    setFileWarning(null)
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
@@ -87,8 +95,9 @@ export function BulkUploadForm({ onUpload }: BulkUploadFormProps) {
             onChange={handleFileSelect}
             className="hidden"
             id="csv-upload"
+            disabled={isProcessing}
           />
-          <Button variant="secondary" asChild className="mt-2">
+          <Button variant="secondary" asChild className="mt-2" disabled={isProcessing}>
             <label htmlFor="csv-upload" className="cursor-pointer">
               <Upload className="h-4 w-4 mr-2" />
               Choose File
@@ -96,6 +105,13 @@ export function BulkUploadForm({ onUpload }: BulkUploadFormProps) {
           </Button>
         </div>
       </div>
+
+      {fileWarning && (
+        <div className="flex items-center gap-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 text-sm text-yellow-500">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {fileWarning}
+        </div>
+      )}
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -126,10 +142,17 @@ Elon,Reeve,Musk,tesla.com"
         />
         <Button
           onClick={handlePaste}
-          disabled={!csvContent.trim()}
+          disabled={!csvContent.trim() || isProcessing}
           className="w-full md:w-auto"
         >
-          Process CSV
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Process CSV"
+          )}
         </Button>
       </div>
 

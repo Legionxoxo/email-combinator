@@ -202,7 +202,7 @@ const COLUMN_ALIASES = {
   firstName: ['first_name', 'firstname', 'first name'],
   middleName: ['middle_name', 'middlename', 'middle name'],
   lastName: ['last_name', 'lastname', 'last name'],
-  domain: ['domain', 'company_website', 'website', 'company domain'],
+  domain: ['domain', 'company_website', 'website', 'company domain', 'found_domain'],
 } as const
 
 /**

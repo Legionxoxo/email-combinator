@@ -1,10 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Copy, Download, Check, AlertTriangle, Info } from "lucide-react"
+import { Copy, Download, Check, AlertTriangle, Info, ChevronDown, ChevronUp } from "lucide-react"
 import { useState, useMemo } from "react"
 import type { PermutationResult, ParseResult } from "@/lib/email-permutator"
 import { generateOutputCSV } from "@/lib/email-permutator"
+
+const INITIAL_ROWS = 5
 
 interface ResultsTableProps {
   results: PermutationResult[]
@@ -13,6 +15,7 @@ interface ResultsTableProps {
 
 export function ResultsTable({ results, parseStats }: ResultsTableProps) {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
 
   const totalEmails = useMemo(() => results.reduce((acc, r) => acc + r.emails.length, 0), [results])
 
@@ -120,7 +123,7 @@ export function ResultsTable({ results, parseStats }: ResultsTableProps) {
           </div>
 
           <div className="space-y-6">
-            {results.map((result, resultIndex) => (
+            {(showAll ? results : results.slice(0, INITIAL_ROWS)).map((result, resultIndex) => (
               <div
                 key={`contact-${resultIndex}`}
                 className="rounded-lg border border-border bg-card overflow-hidden"
@@ -189,6 +192,26 @@ export function ResultsTable({ results, parseStats }: ResultsTableProps) {
               </div>
             ))}
           </div>
+          {results.length > INITIAL_ROWS && (
+            <div className="flex justify-center">
+              <Button
+                variant="secondary"
+                onClick={() => setShowAll(!showAll)}
+              >
+                {showAll ? (
+                  <>
+                    <ChevronUp className="h-4 w-4 mr-2" />
+                    Show Less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4 mr-2" />
+                    See More ({results.length - INITIAL_ROWS} more)
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

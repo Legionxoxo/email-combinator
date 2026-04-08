@@ -6,7 +6,9 @@ import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Upload, FileSpreadsheet, Loader2, AlertTriangle } from "lucide-react"
+import { Upload, FileSpreadsheet, Loader2, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react"
+
+const PREVIEW_ROWS = 5
 
 interface BulkUploadFormProps {
   onUpload: (csvContent: string) => void
@@ -17,6 +19,7 @@ export function BulkUploadForm({ onUpload, isProcessing }: BulkUploadFormProps) 
   const [csvContent, setCsvContent] = useState("")
   const [isDragging, setIsDragging] = useState(false)
   const [fileWarning, setFileWarning] = useState<string | null>(null)
+  const [showFullPreview, setShowFullPreview] = useState(false)
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -56,10 +59,23 @@ export function BulkUploadForm({ onUpload, isProcessing }: BulkUploadFormProps) 
     }
   }
 
+  const csvPreview = csvContent
+    ? csvContent.split('\n').slice(0, PREVIEW_ROWS).join('\n') + '\n...'
+    : ''
+
   const handlePaste = () => {
     if (csvContent.trim()) {
       onUpload(csvContent)
     }
+  }
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCsvContent(e.target.value)
+    setShowFullPreview(false)
+  }
+
+  const togglePreview = () => {
+    setShowFullPreview(!showFullPreview)
   }
 
   return (
@@ -131,15 +147,35 @@ export function BulkUploadForm({ onUpload, isProcessing }: BulkUploadFormProps) 
         >
           CSV Content
         </Label>
-        <Textarea
-          id="csvContent"
-          placeholder="first_name,middle_name,last_name,domain
+        {csvContent ? (
+          <div className="rounded-md border border-border bg-secondary overflow-hidden">
+            <pre className="font-mono text-xs text-foreground p-3 whitespace-pre-wrap break-all max-h-[200px] overflow-y-auto">
+              {showFullPreview ? csvContent : csvPreview}
+            </pre>
+            <div className="flex justify-center border-t border-border">
+              <button
+                onClick={togglePreview}
+                className="w-full py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 flex items-center justify-center gap-1 transition-colors"
+              >
+                {showFullPreview ? (
+                  <><ChevronUp className="h-3 w-3" /> Show Less</>
+                ) : (
+                  <><ChevronDown className="h-3 w-3" /> See More</>
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Textarea
+            id="csvContent"
+            placeholder="first_name,middle_name,last_name,domain
 Tim,David,Cook,spacex.com
 Elon,Reeve,Musk,tesla.com"
-          value={csvContent}
-          onChange={(e) => setCsvContent(e.target.value)}
-          className="bg-secondary border-border min-h-[150px] font-mono text-sm"
-        />
+            value={csvContent}
+            onChange={handleTextareaChange}
+            className="bg-secondary border-border min-h-[150px] font-mono text-sm"
+          />
+        )}
         <Button
           onClick={handlePaste}
           disabled={!csvContent.trim() || isProcessing}
